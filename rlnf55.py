@@ -11,9 +11,14 @@ def load_dimacs(path: str) -> list[list[int]]:
     Returns:
         list[list[int]]: The clause-set
     """
+    with open(path, "r", encoding="utf-8") as file:
+        data = file.readlines()
+    lines = [x.split(" ")[:-1] for x in data][1:]
+    clause_set = [[int(x) for x in num] for num in lines]
+    return clause_set
 
 
-def simple_sat_solve(clause_set: list[list[int]]) -> list[int] | False:
+def simple_sat_solve(clause_set: list[list[int]]) -> list[int] | bool:
     """SAT solver that uses brute force to check every literal assignment until either a satisfying
     assignment is found or all have been checked
 
@@ -23,9 +28,11 @@ def simple_sat_solve(clause_set: list[list[int]]) -> list[int] | False:
     Returns:
         list[int] | False: The assignment of literals if satisfiable, `False` if unsatisfiable
     """
+    print(clause_set)
 
 
-def branching_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -> list[int] | False:
+def branching_sat_solve(clause_set: list[list[int]],
+                        partial_assignment: list[int]) -> list[int] | bool:
     """Recursive function for SAT solving
 
     Args:
@@ -35,6 +42,7 @@ def branching_sat_solve(clause_set: list[list[int]], partial_assignment: list[in
     Returns:
         list[int] | False: The assignment of literals if satisfiable, `False` if unsatisfiable
     """
+    print(clause_set, partial_assignment)
 
 
 def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
@@ -46,9 +54,10 @@ def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
     Returns:
         list[list[int]]: The simplified clause-set
     """
+    print(clause_set)
 
 
-def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -> list[int] | False:
+def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -> list[int] | bool:
     """_summary_
 
     Args:
@@ -58,7 +67,9 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
     Returns:
         list[int] | False: _description_
     """
+    print(clause_set, partial_assignment)
 
 
 if __name__ == "__main__":
-    pass
+    PATH = "Examples/sat.txt"
+    example_clause_set = load_dimacs(PATH)
