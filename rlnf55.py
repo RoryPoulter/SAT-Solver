@@ -65,6 +65,7 @@ def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
             all_unit_clauses.append(clause)
     # Iterate for each unit clause
     for unit_clause in all_unit_clauses:
+        clause_set.remove(unit_clause)
         val = unit_clause[0]
         neg_val = val * -1
         for clause in clause_set:
