@@ -49,21 +49,6 @@ def branching_sat_solve(clause_set: list[list[int]],
     print(clause_set, partial_assignment)
 
 
-def find_unit_clause(clause_set: list[list[int]]) -> list[int] | bool:
-    """Checks a clause-set for any unit clauses
-
-    Args:
-        clause_set (list[list[int]]): The clause-set
-
-    Returns:
-        list[int] | bool: The unit clause, or `False` if none are found
-    """
-    for clause in clause_set:
-        if len(clause) == 1:
-            return clause
-    return False
-
-
 def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
     """Performs unit propagation on a clause-set to find simplified clause-set 
 
@@ -73,22 +58,19 @@ def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
     Returns:
         list[list[int]]: The simplified clause-set
     """
+    # Find all unit clauses
     all_unit_clauses = []
-    loop = True
-    while loop:
-        unit_clause = find_unit_clause(clause_set)
-        if unit_clause:
-            clause_set.remove(unit_clause)
-            all_unit_clauses.append(unit_clause)
-            val = unit_clause[0]
-            neg_val = val * -1
-            for clause in clause_set:
-                if val in clause:
-                    clause.remove(val)
-                elif neg_val in clause_set:
-                    clause.remove(neg_val)
-        else:
-            loop = False
+    for clause in clause_set:
+        if len(clause) == 1:
+            all_unit_clauses.append(clause)
+    # Iterate for each unit clause
+    for unit_clause in all_unit_clauses:
+        val = unit_clause[0]
+        neg_val = val * -1
+        for clause in clause_set:
+            # Remove clauses containing the unit literal
+            if val in clause or neg_val in clause:
+                clause_set.remove(clause)
     return clause_set + all_unit_clauses
 
 
@@ -108,3 +90,6 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
 if __name__ == "__main__":
     PATH = "Examples/Examples-for-SAT/LNP-6.txt"
     example_clause_set = load_dimacs(PATH)
+    print(len(example_clause_set))
+    reduced_clause_set = unit_propagate(example_clause_set)
+    print(len(reduced_clause_set))
