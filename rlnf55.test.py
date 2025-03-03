@@ -3,7 +3,7 @@
 
 
 from timeit import default_timer as timer
-from rlnf55 import load_dimacs, unit_propagate
+from rlnf55 import load_dimacs, unit_propagate, simple_sat_solve
 
 
 class Test:
@@ -13,6 +13,7 @@ class Test:
         self.func = func
         self.args = args
         self.output = output
+        print()
 
     def run(self) -> None:
         """Runs the function using the provided arguments and compares result with expected output
@@ -47,3 +48,8 @@ if __name__ == "__main__":
     test_2 = Test(unit_propagate, [[[1], [-1,2]]], [])
     test_2.run()
     test_2.time()
+
+    # Test `simple_sat_solve` function
+    test_3 = Test(simple_sat_solve, [[[1],[1,-1],[-1,-2]]], [1,-2])
+    test_3.run()
+    test_3.time()
