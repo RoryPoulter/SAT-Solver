@@ -2,6 +2,7 @@
 """
 
 
+# Import required libraries
 from itertools import permutations
 
 
@@ -16,12 +17,14 @@ def check_satisfies(clause_set: list[list[int]], assignment: list[int]) -> bool:
         bool: If the assignment is satisfying
     """
     for literal in assignment:
+        # Creates new clause-set with satisfied clauses removed
         new_clause_set = []
         for clause in clause_set:
+            # Only append unsatisfied clauses
             if literal not in clause:
                 new_clause_set.append(clause)
         clause_set = new_clause_set
-        if clause_set == []:
+        if not clause_set:
             return True
     return False
 
