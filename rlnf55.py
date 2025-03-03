@@ -3,7 +3,7 @@
 
 
 # Import required libraries
-from itertools import permutations
+from itertools import product
 
 
 def check_satisfies(clause_set: list[list[int]], assignment: list[int]) -> bool:
@@ -76,7 +76,8 @@ def simple_sat_solve(clause_set: list[list[int]]) -> list[int] | bool:
         list[int] | False: The assignment of literals if satisfiable, `False` if unsatisfiable
     """
     literals = number_of_literals(clause_set)
-    all_assignments = permutations(range(1, literals+1), literals)
+    pos_neg_pairs = [[x, -x] for x in range(1, literals+1)]
+    all_assignments = product(*pos_neg_pairs)
     for assignment in all_assignments:
         if check_satisfies(clause_set, assignment):
             return list(assignment)
@@ -137,7 +138,7 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
 
 
 if __name__ == "__main__":
-    PATH = "Examples/Examples-for-SAT/LNP-6.txt"
+    PATH = "Examples/sat.txt"
     example_clause_set = load_dimacs(PATH)
     reduced_clause_set = unit_propagate(example_clause_set)
     print(simple_sat_solve(reduced_clause_set))
