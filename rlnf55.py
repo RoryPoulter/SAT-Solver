@@ -3,8 +3,40 @@
 
 
 # Import required libraries
-from itertools import product
+from itertools import product, chain
 import sys
+
+
+def choose_literal(clause_set: list[list[int]]) -> int:
+    """Chooses the most common literal in the clause-set
+
+    Args:
+        clause_set (list[list[int]]): The clause-set
+
+    Returns:
+        int: The most common literal
+    """
+    flat_list = list(chain(*clause_set))
+    return max(flat_list, key=flat_list.count)
+
+
+def remove_clauses(clause_set: list[list[int]], literal: int) -> list[list[int]]:
+    """Removes satisfied clauses and instances of negative literal in clauses
+
+    Args:
+        clause_set (list[list[int]]): The original clause-set
+        literal (int): The literal
+
+    Returns:
+        list[list[int]]: The reduced clause-set
+    """
+    new_clause_set = []
+    for clause in clause_set:
+        if -literal in clause:
+            new_clause_set.append(clause.remove(-literal))
+        elif literal not in clause:
+            new_clause_set.append(clause)
+    return new_clause_set
 
 
 def pure_literal_elimination(clause_set: list[list[int]], literals: int) -> list[list[int]]:
@@ -173,6 +205,8 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
     literals = number_of_literals(clause_set)
     clause_set = unit_propagate(clause_set)
     clause_set = pure_literal_elimination(clause_set, literals)
+
+    literal = choose_literal(clause_set)
 
 
 if __name__ == "__main__":
