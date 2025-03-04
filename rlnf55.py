@@ -4,6 +4,7 @@
 
 # Import required libraries
 from itertools import product
+import sys
 
 
 def check_satisfies(clause_set: list[list[int]], assignment: list[int]) -> bool:
@@ -138,7 +139,9 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
 
 
 if __name__ == "__main__":
-    PATH = "Examples/sat.txt"
+    PATH = "Examples/Examples-for-SAT/W_2,3_ n=8.txt"
     example_clause_set = load_dimacs(PATH)
+    if example_clause_set is None:
+        sys.exit()
     reduced_clause_set = unit_propagate(example_clause_set)
     print(simple_sat_solve(reduced_clause_set))
