@@ -7,6 +7,40 @@ from itertools import product
 import sys
 
 
+def pure_literal_elimination(clause_set: list[list[int]], literals: int) -> list[list[int]]:
+    """Performs pure literal elimination on a clause-set
+
+    Args:
+        clause_set (list[list[int]]): The original clause-set
+        literals (int): The number of literals in the clause-set
+
+    Returns:
+        list[list[int]]: The reduced clause-set
+    """
+    for i in range(1, literals + 1):
+        # Lists for clauses which contain only positive and negative literal respectively
+        pos_clauses = []
+        neg_clauses = []
+        # Iterate for every clause in the clause-set
+        for clause in clause_set:
+            if i in clause and -i not in clause:
+                pos_clauses.append(clause)
+            elif -i in clause and i not in clause:
+                neg_clauses.append(clause)
+            # If not a pure literal, break loop and move to next i
+            if pos_clauses and neg_clauses:
+                break
+        # If i / ¬i is a pure literal
+        else:
+            if pos_clauses:
+                for clause in pos_clauses:
+                    clause_set.remove(clause)
+            elif neg_clauses:
+                for clause in neg_clauses:
+                    clause_set.remove(clause)
+    return clause_set
+
+
 def check_satisfies(clause_set: list[list[int]], assignment: list[int]) -> bool:
     """Checks if an assignment satisfies a clause-set
 
@@ -74,7 +108,7 @@ def simple_sat_solve(clause_set: list[list[int]]) -> list[int] | bool:
         clause_set (list[list[int]]): The clause-set to be checked
 
     Returns:
-        list[int] | False: The assignment of literals if satisfiable, `False` if unsatisfiable
+        list[int] | bool: The assignment of literals if satisfiable, `False` if unsatisfiable
     """
     literals = number_of_literals(clause_set)
     pos_neg_pairs = [[x, -x] for x in range(1, literals+1)]
@@ -94,7 +128,7 @@ def branching_sat_solve(clause_set: list[list[int]],
         partial_assignment (list[int]): _description_
 
     Returns:
-        list[int] | False: The assignment of literals if satisfiable, `False` if unsatisfiable
+        list[int] | bool: The assignment of literals if satisfiable, `False` if unsatisfiable
     """
     print(clause_set, partial_assignment)
 
@@ -133,9 +167,12 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
         partial_assignment (list[int]): _description_
 
     Returns:
-        list[int] | False: _description_
+        list[int] | bool: _description_
     """
     print(clause_set, partial_assignment)
+    literals = number_of_literals(clause_set)
+    clause_set = unit_propagate(clause_set)
+    clause_set = pure_literal_elimination(clause_set, literals)
 
 
 if __name__ == "__main__":
