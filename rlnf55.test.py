@@ -3,7 +3,7 @@
 
 
 from timeit import default_timer as timer
-from rlnf55 import load_dimacs, unit_propagate, simple_sat_solve
+from rlnf55 import load_dimacs, unit_propagate, simple_sat_solve, branching_sat_solve
 
 
 class Test:
@@ -24,18 +24,21 @@ class Test:
             assert result == self.output
             print("    Function works")
         except AssertionError:
-            print("    Function does not work")
+            print(f"    Function does not work: returned {result}, expected {self.output}")
 
-    def time(self) -> None:
-        """Measures time taken for a function to run 1000 times
+    def time(self, iters: int = 1000) -> None:
+        """Measures the time elapsed for a function to execute a given number of times
+
+        Args:
+            iters (int, optional): The number of execution iterations. Defaults to 1000.
         """
         print(f"Timing function {self.func.__name__}")
         start = timer()
-        for _ in range(1000):
+        for _ in range(iters):
             __ = self.func(*self.args)
         end = timer()
         time_elapsed = end - start
-        print(f"    Function took {time_elapsed}s")
+        print(f"    Function took {time_elapsed}s to execute {iters} times")
 
 
 if __name__ == "__main__":
@@ -53,3 +56,8 @@ if __name__ == "__main__":
     test_3 = Test(simple_sat_solve, [[[1],[1,-1],[-1,-2]]], [1,-2])
     test_3.run()
     test_3.time()
+
+    # Test `branching_sat_solve` function
+    test_4 = Test(branching_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
+    test_4.run()
+    test_4.time()
