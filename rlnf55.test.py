@@ -60,4 +60,4 @@ if __name__ == "__main__":
     # Test `branching_sat_solve` function
     test_4 = Test(branching_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
     test_4.run()
-    test_4.time()
+    test_4.time(1)
