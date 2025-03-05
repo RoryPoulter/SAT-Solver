@@ -3,7 +3,8 @@
 
 
 from timeit import default_timer as timer
-from rlnf55 import load_dimacs, unit_propagate, simple_sat_solve, branching_sat_solve
+from rlnf55 import (load_dimacs, unit_propagate, simple_sat_solve, branching_sat_solve,
+                    dpll_sat_solve)
 
 
 class Test:
@@ -61,3 +62,6 @@ if __name__ == "__main__":
     test_4 = Test(branching_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
     test_4.run()
     test_4.time(1)
+
+    # Test `dpll_sat_solve` function
+    test_5 = Test(dpll_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
