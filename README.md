@@ -1,4 +1,11 @@
 # SAT-Solver
+
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/RoryPoulter/SAT-Solver/pylint.yml)
+![GitHub last commit](https://img.shields.io/github/last-commit/RoryPoulter/SAT-Solver)
+![GitHub License](https://img.shields.io/github/license/RoryPoulter/SAT-Solver)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/RoryPoulter/SAT-Solver)
+
+
 SAT Solver for Computational Thinking Coursework.
 
 ## Usage
