@@ -50,17 +50,30 @@ class Test:
 
 
 if __name__ == "__main__":
+    print("========== Start Testing ==========")
     # Test `load_dimacs` function
-    test = Test(load_dimacs, ["Examples/sat.txt"], [[1], [1,-1], [-1,-2]])
+    test_1 = Test(load_dimacs, ["Examples/sat.txt"], [[1], [1,-1], [-1,-2]])
 
     # Test `unit_propagate` function
     test_2 = Test(unit_propagate, [[[1], [-1,2]]], [])
 
+    # Load satisfiable and unsatisfiable clause sets for testing SAT solvers
+    sat_clause_set = load_dimacs("Examples/sat.txt")
+    unsat_clause_set = load_dimacs("Examples/unsat.txt")
+
     # Test `simple_sat_solve` function
-    test_3 = Test(simple_sat_solve, [[[1],[1,-1],[-1,-2]]], [1,-2])
+    test_3_a = Test(simple_sat_solve, [sat_clause_set], [1,-2])
+    test_3_b = Test(simple_sat_solve, [unsat_clause_set], False)
 
     # Test `branching_sat_solve` function
-    test_4 = Test(branching_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
+    test_4_a = Test(branching_sat_solve, [sat_clause_set, []], [1, -2])
+    test_4_b = Test(branching_sat_solve, [unsat_clause_set, []], False)
 
     # Test `dpll_sat_solve` function
-    test_5 = Test(dpll_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
+    test_5_a = Test(dpll_sat_solve, [sat_clause_set, []], [1, -2])
+    test_5_b = Test(dpll_sat_solve, [unsat_clause_set, []], False)
+
+    all_tests = {test_1, test_2, test_3_a, test_3_b, test_4_a, test_4_b, test_5_a, test_5_b}
+    passed_tests = {test for test in all_tests if test.is_correct}
+    print(f"""===================================
+Pass rate: {100 * len(passed_tests) / len(all_tests)}""")
