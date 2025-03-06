@@ -33,6 +33,7 @@ def choose_literal(clause_set: list[list[int]]) -> int:
     return max(flat_list, key=flat_list.count)
 
 
+# ! Need to change to remove clauses satisfied by whole assignment, not last literal
 def remove_clauses(clause_set: list[list[int]], literal: int) -> list[list[int]]:
     """Removes satisfied clauses and instances of negative literal in clauses
 
@@ -196,6 +197,38 @@ def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
     return clause_set
 
 
+def up(clause_set: list[list[int]]) -> tuple[list]:
+    """Unit propagation for DPLL SAT solver
+
+    Args:
+        clause_set (list[list[int]]): The clause-set
+
+    Returns:
+        tuple[list]: Tuple with the reduced clause set and set of literals to reduce clause-set
+    """
+    all_unit_clauses = []
+    while 1:
+        # Find all unit clauses
+        unit_clauses = [clause for clause in clause_set if len(clause) == 1]
+        if not unit_clauses:
+            break
+        all_unit_clauses += unit_clauses
+        # Iterate for each unit clause
+        for unit_clause in unit_clauses:
+            clause_set.remove(unit_clause)
+            val = unit_clause[0]
+            new_clause_set = []
+            for clause in clause_set:
+                # Remove clauses containing the unit literal
+                if val not in clause and -val not in clause:
+                    new_clause_set.append(clause)
+                elif -val in clause and val not in clause:
+                    clause.remove(-val)
+                    new_clause_set.append(clause)
+            clause_set = new_clause_set
+    return clause_set, [l[0] for l in all_unit_clauses]
+
+
 def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -> list[int] | bool:
     """SAT solver using DPLL algorithm without pure literal elimination
 
@@ -207,8 +240,8 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
         list[int] | bool: Either a satisfying assignment of literals, or `False` if unsatisfiable
     """
     # Perform unit propagation on clause-set
-    clause_set = unit_propagate(clause_set)
-
+    clause_set, unit_literals = up(clause_set)
+    partial_assignment += unit_literals
     # If partial_assignment is not empty, i.e. != []
     if partial_assignment:
         clause_set = remove_clauses(clause_set, partial_assignment[-1])
