@@ -14,18 +14,26 @@ class Test:
         self.func = func
         self.args = args
         self.output = output
-        print()
+        self.is_correct = self.run()
+        if self.is_correct:
+            self.time(1)
 
-    def run(self) -> None:
-        """Runs the function using the provided arguments and compares result with expected output
+    def run(self) -> bool:
+        """Runs the function with the given arguments and compares the result with the expected
+        output.
+
+        Returns:
+            bool: If the function produced the correct output
         """
         print(f"Testing function {self.func.__name__}")
         try:
             result = self.func(*self.args)
             assert result == self.output
-            print("    Function works")
+            print("    ✓ Function works")
+            return True
         except AssertionError:
-            print(f"    Function does not work: returned {result}, expected {self.output}")
+            print(f"    X Function does not work: returned {result}, expected {self.output}")
+            return False
 
     def time(self, iters: int = 1000) -> None:
         """Measures the time elapsed for a function to execute a given number of times
@@ -33,7 +41,6 @@ class Test:
         Args:
             iters (int, optional): The number of execution iterations. Defaults to 1000.
         """
-        print(f"Timing function {self.func.__name__}")
         start = timer()
         for _ in range(iters):
             __ = self.func(*self.args)
@@ -45,23 +52,15 @@ class Test:
 if __name__ == "__main__":
     # Test `load_dimacs` function
     test = Test(load_dimacs, ["Examples/sat.txt"], [[1], [1,-1], [-1,-2]])
-    test.run()
-    test.time()
 
     # Test `unit_propagate` function
     test_2 = Test(unit_propagate, [[[1], [-1,2]]], [])
-    test_2.run()
-    test_2.time()
 
     # Test `simple_sat_solve` function
     test_3 = Test(simple_sat_solve, [[[1],[1,-1],[-1,-2]]], [1,-2])
-    test_3.run()
-    test_3.time()
 
     # Test `branching_sat_solve` function
     test_4 = Test(branching_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
-    test_4.run()
-    test_4.time(1)
 
     # Test `dpll_sat_solve` function
     test_5 = Test(dpll_sat_solve, [[[1],[1,-1],[-1,-2]], []], [1, -2])
