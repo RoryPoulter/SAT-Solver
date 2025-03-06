@@ -17,7 +17,7 @@ def get_all_literals(clause_set: list[list[int]]) -> list[int]:
     Returns:
         list[int]: The list of remaining literals
     """
-    return [x if x > 0 else -x for x in set(chain(*clause_set))]
+    return list({x if x > 0 else -x for x in set(chain(*clause_set))})
 
 
 def choose_literal(clause_set: list[list[int]]) -> int:
@@ -51,43 +51,6 @@ def remove_clauses(clause_set: list[list[int]], literal: int) -> list[list[int]]
         elif literal not in clause:
             new_clause_set.append(clause)
     return new_clause_set
-
-
-def pure_literal_elimination(clause_set: list[list[int]], literals: int) -> list[list[int]]:
-    """Performs pure literal elimination on a clause-set
-
-    Args:
-        clause_set (list[list[int]]): The original clause-set
-        literals (int): The number of literals in the clause-set
-
-    Returns:
-        list[list[int]]: The reduced clause-set
-    """
-    for i in range(1, literals + 1):
-        # Lists for clauses which contain only positive and negative literal respectively
-        pos_clauses = []
-        neg_clauses = []
-        pure_literals = []
-        # Iterate for every clause in the clause-set
-        for clause in clause_set:
-            if i in clause and -i not in clause:
-                pos_clauses.append(clause)
-                pure_literals.append(i)
-            elif -i in clause and i not in clause:
-                neg_clauses.append(clause)
-                pure_literals.append(-i)
-            # If not a pure literal, break loop and move to next i
-            if pos_clauses and neg_clauses:
-                break
-        # If i / ¬i is a pure literal
-        else:
-            if pos_clauses:
-                for clause in pos_clauses:
-                    clause_set.remove(clause)
-            elif neg_clauses:
-                for clause in neg_clauses:
-                    clause_set.remove(clause)
-    return clause_set, pure_literals
 
 
 def check_satisfies(clause_set: list[list[int]], assignment: list[int]) -> bool:
@@ -159,8 +122,8 @@ def simple_sat_solve(clause_set: list[list[int]]) -> list[int] | bool:
     Returns:
         list[int] | bool: The assignment of literals if satisfiable, `False` if unsatisfiable
     """
-    literals = number_of_literals(clause_set)
-    pos_neg_pairs = [[x, -x] for x in range(1, literals+1)]
+    literals = get_all_literals(clause_set)
+    pos_neg_pairs = [[x, -x] for x in literals]
     all_assignments = product(*pos_neg_pairs)
     for assignment in all_assignments:
         if check_satisfies(clause_set, assignment):
@@ -174,7 +137,7 @@ def branching_sat_solve(clause_set: list[list[int]],
 
     Args:
         clause_set (list[list[int]]): The clause-set to be checked
-        partial_assignment (list[int]): _description_
+        partial_assignment (list[int]): The assignment at the stage the function is called
 
     Returns:
         list[int] | bool: The assignment of literals if satisfiable, `False` if unsatisfiable
@@ -212,51 +175,73 @@ def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
     Returns:
         list[list[int]]: The simplified clause-set
     """
-    # Find all unit clauses
-    all_unit_clauses = []
-    for clause in clause_set:
-        if len(clause) == 1:
-            all_unit_clauses.append(clause)
-    # Iterate for each unit clause
-    for unit_clause in all_unit_clauses:
-        clause_set.remove(unit_clause)
-        val = unit_clause[0]
-        neg_val = val * -1
-        for clause in clause_set:
-            # Remove clauses containing the unit literal
-            if val in clause or neg_val in clause:
-                clause_set.remove(clause)
+    while 1:
+        # Find all unit clauses
+        all_unit_clauses = [clause for clause in clause_set if len(clause) == 1]
+        if not all_unit_clauses:
+            break
+        # Iterate for each unit clause
+        for unit_clause in all_unit_clauses:
+            clause_set.remove(unit_clause)
+            val = unit_clause[0]
+            new_clause_set = []
+            for clause in clause_set:
+                # Remove clauses containing the unit literal
+                if val not in clause and -val not in clause:
+                    new_clause_set.append(clause)
+                elif -val in clause and val not in clause:
+                    clause.remove(-val)
+                    new_clause_set.append(clause)
+            clause_set = new_clause_set
     return clause_set
 
 
 def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -> list[int] | bool:
-    """_summary_
+    """SAT solver using DPLL algorithm without pure literal elimination
 
     Args:
-        clause_set (list[list[int]]): _description_
-        partial_assignment (list[int]): _description_
+        clause_set (list[list[int]]): The clause-set
+        partial_assignment (list[int]): The assignment at the stage the function is called
 
     Returns:
-        list[int] | bool: _description_
+        list[int] | bool: Either a satisfying assignment of literals, or `False` if unsatisfiable
     """
-    print(clause_set, partial_assignment)
-    literals = number_of_literals(clause_set)
+    # Perform unit propagation on clause-set
     clause_set = unit_propagate(clause_set)
-    clause_set, pure_literals = pure_literal_elimination(clause_set, literals)
-    partial_assignment += pure_literals
+
+    # If partial_assignment is not empty, i.e. != []
+    if partial_assignment:
+        clause_set = remove_clauses(clause_set, partial_assignment[-1])
+
+    # Check clause-set is satisfied
+    if not clause_set:
+        return partial_assignment
+
+    # Check clause-set has empty clause
+    if [] in clause_set:
+        return False
 
     literal = choose_literal(clause_set)
-    print(literal)
+    partial_assignment.append(literal)
+    partial_assignment_2 = deepcopy(partial_assignment)
+    partial_assignment_2[-1] *= -1
+    clause_set_2 = deepcopy(clause_set)
+    pos_result = branching_sat_solve(clause_set, partial_assignment)
+    neg_result = branching_sat_solve(clause_set_2, partial_assignment_2)
+    return pos_result or neg_result
 
 
 if __name__ == "__main__":
-    PATH = "Examples/Examples-for-SAT/PHP-5-4.txt"
+    PATH = "Examples/sat.txt"
     example_clause_set = load_dimacs(PATH)
     if example_clause_set is None:
         sys.exit()
     print("\n***********Simple SAT Solve***********\n")
     print(example_clause_set)
     print(simple_sat_solve(example_clause_set))
-    print("\n***********Branching SAT Solve***********\n")
+    # print("\n***********Branching SAT Solve***********\n")
+    # print(example_clause_set)
+    # print(branching_sat_solve(example_clause_set, partial_assignment=[]))
+    print("\n***********DPLL SAT Solve***********\n")
     print(example_clause_set)
-    print(branching_sat_solve(example_clause_set, partial_assignment=[]))
+    print(dpll_sat_solve(example_clause_set, partial_assignment=[]))
