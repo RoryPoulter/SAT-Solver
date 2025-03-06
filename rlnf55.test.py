@@ -57,21 +57,17 @@ if __name__ == "__main__":
     # Test `unit_propagate` function
     test_2 = Test(unit_propagate, [[[1], [-1,2]]], [])
 
-    # Load satisfiable and unsatisfiable clause sets for testing SAT solvers
-    sat_clause_set = load_dimacs("Examples/sat.txt")
-    unsat_clause_set = load_dimacs("Examples/unsat.txt")
-
     # Test `simple_sat_solve` function
-    test_3_a = Test(simple_sat_solve, [sat_clause_set], [1,-2])
-    test_3_b = Test(simple_sat_solve, [unsat_clause_set], False)
+    test_3_a = Test(simple_sat_solve, [[[1], [1,-1], [-1,-2]]], [1,-2])
+    test_3_b = Test(simple_sat_solve, [[[1,2], [-1,2], [-1,-2], [1,-2]]], False)
 
     # Test `branching_sat_solve` function
-    test_4_a = Test(branching_sat_solve, [sat_clause_set, []], [1, -2])
-    test_4_b = Test(branching_sat_solve, [unsat_clause_set, []], False)
+    test_4_a = Test(branching_sat_solve, [[[1], [1,-1], [-1,-2]], []], [1, -2])
+    test_4_b = Test(branching_sat_solve, [[[1,2], [-1,2], [-1,-2], [1,-2]], []], False)
 
     # Test `dpll_sat_solve` function
-    test_5_a = Test(dpll_sat_solve, [sat_clause_set, []], [1, -2])
-    test_5_b = Test(dpll_sat_solve, [unsat_clause_set, []], False)
+    test_5_a = Test(dpll_sat_solve, [[[1], [1,-1], [-1,-2]], []], [1, -2])
+    test_5_b = Test(dpll_sat_solve, [[[1,2], [-1,2], [-1,-2], [1,-2]], []], False)
 
     all_tests = {test_1, test_2, test_3_a, test_3_b, test_4_a, test_4_b, test_5_a, test_5_b}
     passed_tests = {test for test in all_tests if test.is_correct}
