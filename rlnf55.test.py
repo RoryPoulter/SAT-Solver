@@ -2,7 +2,8 @@
 """
 
 
-from timeit import default_timer as timer
+import timeit
+from line_profiler import LineProfiler
 from rlnf55 import (load_dimacs, unit_propagate, simple_sat_solve, branching_sat_solve,
                     dpll_sat_solve)
 
@@ -16,7 +17,7 @@ class Test:
         self.output = output
         self.is_correct = self.run()
         if self.is_correct:
-            self.time(1)
+            self.time()
 
     def run(self) -> bool:
         """Runs the function with the given arguments and compares the result with the expected
@@ -35,18 +36,20 @@ class Test:
             print(f"    X Function does not work: returned {result}, expected {self.output}")
             return False
 
-    def time(self, iters: int = 1000) -> None:
+    def time(self) -> None:
         """Measures the time elapsed for a function to execute a given number of times
-
-        Args:
-            iters (int, optional): The number of execution iterations. Defaults to 1000.
         """
-        start = timer()
-        for _ in range(iters):
-            __ = self.func(*self.args)
-        end = timer()
-        time_elapsed = end - start
-        print(f"    Function took {time_elapsed}s to execute {iters} times")
+        time_elapsed = timeit.timeit(lambda: self.func(*self.args), number = 20)
+        print(f"    Function took {time_elapsed}s to execute.")
+
+    def detailed_test(self) -> None:
+        """Runs test using line profiler
+        """
+        profiler = LineProfiler()
+        profiler.add_function(self.func)
+        profiler_wrapper = profiler(self.func)
+        profiler_wrapper(*self.args)
+        profiler.print_stats()
 
 
 if __name__ == "__main__":
@@ -62,14 +65,18 @@ if __name__ == "__main__":
     test_3_b = Test(simple_sat_solve, [[[1,2], [-1,2], [-1,-2], [1,-2]]], False)
 
     # Test `branching_sat_solve` function
-    test_4_a = Test(branching_sat_solve, [[[1], [1,-1], [-1,-2]], []], [1, -2])
+    test_4_a = Test(branching_sat_solve, [[[1], [1,-1], [-1,-2]]], [1, -2])
     test_4_b = Test(branching_sat_solve, [[[1,2], [-1,2], [-1,-2], [1,-2]], []], False)
 
     # Test `dpll_sat_solve` function
-    test_5_a = Test(dpll_sat_solve, [[[1], [1,-1], [-1,-2]], []], [1, -2])
+    test_5_a = Test(dpll_sat_solve, [[[1], [1,-1], [-1,-2]]], [1, -2])
     test_5_b = Test(dpll_sat_solve, [[[1,2], [-1,2], [-1,-2], [1,-2]], []], False)
 
     all_tests = {test_1, test_2, test_3_a, test_3_b, test_4_a, test_4_b, test_5_a, test_5_b}
     passed_tests = {test for test in all_tests if test.is_correct}
     print(f"""===================================
 Pass rate: {100 * len(passed_tests) / len(all_tests)}""")
+
+    clause_set = load_dimacs("Examples/Examples-for-Sat/8queens.txt")
+    dpll_test = Test(dpll_sat_solve, [clause_set], [])
+    dpll_test.detailed_test()
