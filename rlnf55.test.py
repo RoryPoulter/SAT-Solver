@@ -45,6 +45,7 @@ class Test:
     def detailed_test(self) -> None:
         """Runs test using line profiler
         """
+        self.time()
         profiler = LineProfiler()
         profiler.add_function(self.func)
         profiler_wrapper = profiler(self.func)
