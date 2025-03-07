@@ -182,24 +182,24 @@ def unit_propagate(clause_set: list[list[int]]) -> list[list[int]]:
     Returns:
         list[list[int]]: The simplified clause-set
     """
-    while 1:
-        # Find all unit clauses
-        all_unit_clauses = [clause for clause in clause_set if len(clause) == 1]
-        if not all_unit_clauses:
-            break
-        # Iterate for each unit clause
-        for unit_clause in all_unit_clauses:
-            clause_set.remove(unit_clause)
-            val = unit_clause[0]
-            new_clause_set = []
-            for clause in clause_set:
-                # Remove clauses containing the unit literal
-                if val not in clause and -val not in clause:
+    all_unit_clauses = []
+    unit_clauses = [clause[0] for clause in clause_set if len(clause) == 1]
+    all_unit_clauses += unit_clauses
+    while unit_clauses:
+        literal = unit_clauses.pop()
+        new_clause_set = []
+        for clause in clause_set:
+            if literal in clause:
+                continue
+            if -literal in clause:
+                clause.remove(-literal)
+                if len(clause) == 1:
+                    unit_clauses.append(clause[0])
+                else:
                     new_clause_set.append(clause)
-                elif -val in clause and val not in clause:
-                    clause.remove(-val)
-                    new_clause_set.append(clause)
-            clause_set = new_clause_set
+            else:
+                new_clause_set.append(clause)
+        clause_set = new_clause_set
     return clause_set
 
 
@@ -278,7 +278,7 @@ def dpll_sat_solve(clause_set: list[list[int]],
 
 
 if __name__ == "__main__":
-    PATH = "Examples/Examples-for-SAT/W_2,3_ n=8.txt"
+    PATH = "Examples/unsat.txt"
     example_clause_set = load_dimacs(PATH)
     if example_clause_set is None:
         sys.exit()
