@@ -137,7 +137,7 @@ def simple_sat_solve(clause_set: list[list[int]]) -> list[int] | bool:
 
 
 def branching_sat_solve(clause_set: list[list[int]],
-                        partial_assignment: list[int]) -> list[int] | bool:
+                        partial_assignment: list[int] = None) -> list[int] | bool:
     """Recursive function for SAT solving
 
     Args:
@@ -150,6 +150,8 @@ def branching_sat_solve(clause_set: list[list[int]],
     # If partial_assignment is not empty, i.e. != []
     if partial_assignment:
         clause_set = remove_clauses(clause_set, partial_assignment)
+    else:
+        partial_assignment = []
 
     # Check clause-set is satisfied
     if not clause_set:
@@ -211,30 +213,34 @@ def up(clause_set: list[list[int]]) -> tuple[list]:
         tuple[list]: Tuple with the reduced clause set and set of literals to reduce clause-set
     """
     all_unit_clauses = []
-    while 1:
-        # Find all unit clauses
-        unit_clauses = list({clause[0] for clause in clause_set if len(clause) == 1})
-        if not unit_clauses:
-            break
-        all_unit_clauses += unit_clauses
-        # Iterate for each unit clause
-        for unit_clause in unit_clauses:
-            if -unit_clause in unit_clauses:
-                return [[]], []
-            clause_set.remove([unit_clause])
-            new_clause_set = []
-            for clause in clause_set:
-                # Remove clauses containing the unit literal
-                if unit_clause not in clause and -unit_clause not in clause:
+    unit_clauses = list({clause[0] for clause in clause_set if len(clause) == 1})
+    all_unit_clauses += unit_clauses
+    while unit_clauses:
+        new_clause_set = []
+        unit_clause = unit_clauses.pop()
+
+        if -unit_clause in all_unit_clauses:
+            return [[]], []
+
+        for clause in clause_set:
+            if unit_clause in clause:
+                continue
+            if -unit_clause in clause:
+                clause.remove(-unit_clause)
+                if len(clause) == 1:
+                    unit_clauses.append(clause[0])
+                    all_unit_clauses.append(clause[0])
+                else:
                     new_clause_set.append(clause)
-                elif -unit_clause in clause and unit_clause not in clause:
-                    clause.remove(-unit_clause)
-                    new_clause_set.append(clause)
-            clause_set = new_clause_set
+            else:
+                new_clause_set.append(clause)
+        clause_set = new_clause_set
+
     return clause_set, all_unit_clauses
 
 
-def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -> list[int] | bool:
+def dpll_sat_solve(clause_set: list[list[int]],
+                   partial_assignment: list[int] = None) -> list[int] | bool:
     """SAT solver using DPLL algorithm without pure literal elimination
 
     Args:
@@ -244,6 +250,8 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
     Returns:
         list[int] | bool: Either a satisfying assignment of literals, or `False` if unsatisfiable
     """
+    if partial_assignment is None:
+        partial_assignment = []
     # Perform unit propagation on clause-set
     clause_set, unit_literals = up(clause_set)
     partial_assignment += unit_literals
@@ -270,16 +278,10 @@ def dpll_sat_solve(clause_set: list[list[int]], partial_assignment: list[int]) -
 
 
 if __name__ == "__main__":
-    PATH = "Examples/Examples-for-SAT/8queens.txt"
+    PATH = "Examples/Examples-for-SAT/W_2,3_ n=8.txt"
     example_clause_set = load_dimacs(PATH)
     if example_clause_set is None:
         sys.exit()
-    # print("\n***********Simple SAT Solve***********\n")
-    # print(example_clause_set)
-    # print(simple_sat_solve(example_clause_set))
-    # print("\n***********Branching SAT Solve***********\n")
-    # print(example_clause_set)
-    # print(branching_sat_solve(example_clause_set, partial_assignment=[]))
     print("\n***********DPLL SAT Solve***********\n")
     print(example_clause_set)
     print(dpll_sat_solve(example_clause_set, partial_assignment=[]))
