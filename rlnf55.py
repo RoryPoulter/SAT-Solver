@@ -4,6 +4,7 @@
 
 # Import required libraries
 from itertools import product, chain
+from collections import Counter
 import sys
 from copy import deepcopy
 
@@ -29,8 +30,7 @@ def choose_literal(clause_set: list[list[int]]) -> int:
     Returns:
         int: The most common literal
     """
-    flat_list = list(chain(*clause_set))
-    return max(flat_list, key=flat_list.count)
+    return Counter(chain.from_iterable(clause_set)).most_common()[0][0]
 
 
 def remove_clauses(clause_set: list[list[int]], assignment: list[int]) -> list[list[int]]:
@@ -43,18 +43,13 @@ def remove_clauses(clause_set: list[list[int]], assignment: list[int]) -> list[l
     Returns:
         list[list[int]]: The reduced clause-set
     """
-    new_clause_set = []
     assignment_set = set(assignment)
     neg_assignment_set = {-x for x in assignment_set}
-    for clause in clause_set:
-        clause_s = set(clause)
-        if assignment_set & clause_s:
-            pass
-        elif neg_assignment_set & clause_s:
-            clause = list(clause_s - neg_assignment_set)
-            new_clause_set.append(clause)
-        elif not assignment_set & clause_s:
-            new_clause_set.append(clause)
+
+    new_clause_set = [c for c in clause_set if not set(c) & assignment_set]
+    new_clause_set = [c if not set(c) & neg_assignment_set else list(set(c) - neg_assignment_set)
+                      for c in new_clause_set]
+
     return new_clause_set
 
 
@@ -219,6 +214,7 @@ def up(clause_set: list[list[int]]) -> tuple[list]:
         new_clause_set = []
         unit_clause = unit_clauses.pop()
 
+        # If there are unit clauses for a literal and its negative, clause-set is unsatisfiable
         if -unit_clause in all_unit_clauses:
             return [[]], []
 
@@ -252,9 +248,11 @@ def dpll_sat_solve(clause_set: list[list[int]],
     """
     if partial_assignment is None:
         partial_assignment = []
+
     # Perform unit propagation on clause-set
     clause_set, unit_literals = up(clause_set)
     partial_assignment += unit_literals
+
     # If partial_assignment is not empty, i.e. != []
     if partial_assignment:
         clause_set = remove_clauses(clause_set, partial_assignment)
@@ -268,13 +266,13 @@ def dpll_sat_solve(clause_set: list[list[int]],
         return False
 
     literal = choose_literal(clause_set)
-    partial_assignment.append(literal)
-    partial_assignment_2 = deepcopy(partial_assignment)
-    partial_assignment_2[-1] *= -1
-    clause_set_2 = deepcopy(clause_set)
-    pos_result = dpll_sat_solve(clause_set, partial_assignment)
-    neg_result = dpll_sat_solve(clause_set_2, partial_assignment_2)
-    return pos_result or neg_result
+
+    new_clause_set = deepcopy(clause_set)
+
+    pos_result = dpll_sat_solve(clause_set, partial_assignment + [literal])
+    if pos_result:
+        return pos_result
+    return dpll_sat_solve(new_clause_set, partial_assignment + [-literal])
 
 
 if __name__ == "__main__":
