@@ -223,7 +223,7 @@ def up(clause_set: list[list[int]]) -> tuple[list]:
                 continue
             if -unit_clause in clause:
                 clause.remove(-unit_clause)
-                if len(clause) == 1:
+                if len(clause) == 1 and clause[0] not in all_unit_clauses:
                     unit_clauses.append(clause[0])
                     all_unit_clauses.append(clause[0])
                 else:
@@ -249,13 +249,13 @@ def dpll_sat_solve(clause_set: list[list[int]],
     if partial_assignment is None:
         partial_assignment = []
 
-    # Perform unit propagation on clause-set
-    clause_set, unit_literals = up(clause_set)
-    partial_assignment += unit_literals
-
     # If partial_assignment is not empty, i.e. != []
     if partial_assignment:
         clause_set = remove_clauses(clause_set, partial_assignment)
+
+    # Perform unit propagation on clause-set
+    clause_set, unit_literals = up(clause_set)
+    partial_assignment += unit_literals
 
     # Check clause-set is satisfied
     if not clause_set:
@@ -267,7 +267,7 @@ def dpll_sat_solve(clause_set: list[list[int]],
 
     literal = choose_literal(clause_set)
 
-    new_clause_set = deepcopy(clause_set)
+    new_clause_set = [c[:] for c in clause_set]
 
     pos_result = dpll_sat_solve(clause_set, partial_assignment + [literal])
     if pos_result:
@@ -282,4 +282,4 @@ if __name__ == "__main__":
         sys.exit()
     print("\n***********DPLL SAT Solve***********\n")
     print(example_clause_set)
-    print(dpll_sat_solve(example_clause_set, partial_assignment=[]))
+    print(dpll_sat_solve(example_clause_set))
