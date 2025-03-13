@@ -6,7 +6,6 @@
 from itertools import product, chain
 from collections import Counter
 import sys
-from copy import deepcopy
 
 
 def get_all_literals(clause_set: list[list[int]]) -> list[int]:
@@ -160,9 +159,9 @@ def branching_sat_solve(clause_set: list[list[int]],
     literal = get_all_literals(clause_set)[0]
 
     partial_assignment.append(literal)
-    partial_assignment_2 = deepcopy(partial_assignment)
+    partial_assignment_2 = partial_assignment[:]
     partial_assignment_2[-1] *= -1
-    clause_set_2 = deepcopy(clause_set)
+    clause_set_2 = [c[:] for c in clause_set]
     pos_result = branching_sat_solve(clause_set, partial_assignment)
     neg_result = branching_sat_solve(clause_set_2, partial_assignment_2)
     return pos_result or neg_result
